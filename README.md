@@ -266,38 +266,67 @@ Local AI availability depends on the host machine, Ollama configuration, model a
 
 ## High-Level Architecture
 
-```mermaid
-flowchart TD
-    A["User / API Client / Dashboard"] --> B["Spring Boot REST API"]
+```text
+                         ┌─────────────────────────────┐
+                         │        USER / CLIENT        │
+                         │  Text • PDF • API Request   │
+                         └──────────────┬──────────────┘
+                                        │
+                                        ▼
+                         ┌─────────────────────────────┐
+                         │       AGENTSHIELD API       │
+                         │      Spring Boot Backend    │
+                         └──────────────┬──────────────┘
+                                        │
+                                        ▼
+                    ┌──────────────────────────────────────┐
+                    │       SECURITY FIREWALL ENGINE       │
+                    │                                      │
+                    │  • Input Validation                  │
+                    │  • Prompt Injection Detection        │
+                    │  • Attack Classification             │
+                    │  • Risk Score (0–100)                │
+                    │  • Risk Level                        │
+                    └──────────────────┬───────────────────┘
+                                       │
+                         ┌─────────────┴─────────────┐
+                         │                           │
+                         ▼                           ▼
+              ┌────────────────────┐      ┌────────────────────┐
+              │   RULE-BASED       │      │   LOCAL AI         │
+              │   DETECTION        │      │   SECURITY ANALYZER│
+              │                    │      │                    │
+              │ Security patterns  │      │ Ollama             │
+              │ Attack signals     │      │ Qwen3 1.7B         │
+              │ Risk scoring       │      │ Semantic analysis  │
+              └─────────┬──────────┘      └─────────┬──────────┘
+                        │                           │
+                        └─────────────┬─────────────┘
+                                      │
+                                      ▼
+                         ┌─────────────────────────────┐
+                         │       SECURITY POLICY       │
+                         │                             │
+                         │   ALLOW • FLAG • BLOCK      │
+                         │   Behavioral Controls       │
+                         │   Rate Limiting             │
+                         │   Fail-Closed Protection    │
+                         └──────────────┬──────────────┘
+                                        │
+                         ┌──────────────┴──────────────┐
+                         │                             │
+                         ▼                             ▼
+              ┌────────────────────┐       ┌────────────────────┐
+              │    MYSQL DATABASE  │       │   SECURITY UI      │
+              │                    │       │                    │
+              │ Scan Requests      │       │ Dashboard          │
+              │ Attack Type        │       │ Scanner            │
+              │ Risk Level         │       │ Activity           │
+              │ Reason             │       │ Settings           │
+              │ Action Taken       │       └────────────────────┘
+              └────────────────────┘
 
-    B --> C["Input Validation & Extraction"]
-
-    C --> D["Prompt Injection Detector"]
-
-    D -->|"Threat Detected"| E["Risk & Policy Engine"]
-
-    D -->|"No Rule Match"| F["Local AI Analyzer"]
-
-    F --> G["Ollama + Qwen3"]
-
-    G --> E
-
-    E --> H["Behavior Analysis"]
-
-    H --> I{"Security Decision"}
-
-    I --> J["ALLOWED"]
-    I --> K["FLAGGED"]
-    I --> L["BLOCKED"]
-
-    J --> M[("MySQL")]
-    K --> M
-    L --> M
-
-    M --> N["Dashboard / Activity / Analytics"]
 ```
-
----
 
 # 🔬 Detection Pipeline
 
